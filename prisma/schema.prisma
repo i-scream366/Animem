@@ -1,0 +1,430 @@
+// ============================================================
+// ANIMEM — Prisma Schema
+// DB: PostgreSQL (empfohlen: Supabase)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------------
+
+enum Role {
+  OWNER
+  HEAD_ADMIN
+  ADMIN
+  USER
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum RatingTargetType {
+  SERIES
+  MOVIE
+  EPISODE
+}
+
+enum WatchTargetType {
+  EPISODE
+  MOVIE
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ------------------------------------------------------------
+// USER & AUTH
+// ------------------------------------------------------------
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  passwordHash  String?
+  avatarUrl     String?
+  bio           String?
+  role          Role     @default(USER)
+  isBanned      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ratings         Rating[]
+  watchHistory    WatchHistory[]
+  watchlistItems  WatchlistItem[]
+  subscriptions   Subscription[]
+  notifications   Notification[]
+  collections     Collection[]
+  forumThreads    ForumThread[]
+  forumPosts      ForumPost[]
+  tickets         Ticket[]         @relation("TicketOwner")
+  ticketMessages  TicketMessage[]
+  createdSeries   Series[]         @relation("SeriesCreatedBy")
+  createdMovies   Movie[]          @relation("MovieCreatedBy")
+
+  @@index([role])
+}
+
+// ------------------------------------------------------------
+// CONTENT: SERIES / SEASON / EPISODE / MOVIE
+// ------------------------------------------------------------
+
+model Series {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  description   String?
+  thumbnailUrl  String
+  bannerUrl     String?
+  releaseDate   DateTime?
+  status        ContentStatus @default(DRAFT)
+
+  avgRating     Float         @default(0)
+  ratingsCount  Int           @default(0)
+  viewCount     Int           @default(0)
+
+  createdById   String
+  createdBy     User          @relation("SeriesCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  seasons       Season[]
+  genres        GenreOnSeries[]
+  tags          TagOnSeries[]
+  ratings       Rating[]        @relation("SeriesRatings")
+  subscriptions Subscription[]
+  watchlist     WatchlistItem[]
+  collectionItems CollectionItem[]
+
+  @@index([status])
+  @@index([avgRating])
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  seriesId  String
+  series    Series   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  number    Int
+  title     String?
+  createdAt DateTime @default(now())
+
+  episodes  Episode[]
+
+  @@unique([seriesId, number])
+}
+
+model Episode {
+  id            String        @id @default(cuid())
+  seasonId      String
+  season        Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  number        Int
+  title         String
+  description   String?
+  thumbnailUrl  String?
+  embedUrl      String
+  embedProvider String?       // z.B. "VOE", "Streamtape", "Doodstream"
+  durationSec   Int?
+  releaseDate   DateTime?
+  status        ContentStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  ratings       Rating[]         @relation("EpisodeRatings")
+  watchHistory  WatchHistory[]
+  collectionItems CollectionItem[]
+
+  @@unique([seasonId, number])
+}
+
+model Movie {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  description   String?
+  thumbnailUrl  String
+  bannerUrl     String?
+  embedUrl      String
+  embedProvider String?
+  durationSec   Int?
+  releaseDate   DateTime?
+  status        ContentStatus @default(DRAFT)
+
+  avgRating     Float         @default(0)
+  ratingsCount  Int           @default(0)
+  viewCount     Int           @default(0)
+
+  createdById   String
+  createdBy     User          @relation("MovieCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  genres        GenreOnMovie[]
+  tags          TagOnMovie[]
+  ratings       Rating[]         @relation("MovieRatings")
+  watchHistory  WatchHistory[]
+  watchlist     WatchlistItem[]
+  collectionItems CollectionItem[]
+
+  @@index([status])
+  @@index([avgRating])
+}
+
+// ------------------------------------------------------------
+// TAXONOMIE: GENRE / TAG
+// ------------------------------------------------------------
+
+model Genre {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+
+  series GenreOnSeries[]
+  movies GenreOnMovie[]
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  series TagOnSeries[]
+  movies TagOnMovie[]
+}
+
+model GenreOnSeries {
+  seriesId String
+  genreId  String
+  series   Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  genre    Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([seriesId, genreId])
+}
+
+model TagOnSeries {
+  seriesId String
+  tagId    String
+  series   Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([seriesId, tagId])
+}
+
+model GenreOnMovie {
+  movieId String
+  genreId String
+  movie   Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre   Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+}
+
+model TagOnMovie {
+  movieId String
+  tagId   String
+  movie   Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  tag     Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, tagId])
+}
+
+// ------------------------------------------------------------
+// BEWERTUNGEN
+// ------------------------------------------------------------
+
+model Rating {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType RatingTargetType
+  value      Int              // 1-10 (Sterne * 2 fürs Frontend, oder 1-5 direkt nutzbar)
+  createdAt  DateTime         @default(now())
+
+  seriesId  String?
+  series    Series?  @relation("SeriesRatings", fields: [seriesId], references: [id], onDelete: Cascade)
+  movieId   String?
+  movie     Movie?   @relation("MovieRatings", fields: [movieId], references: [id], onDelete: Cascade)
+  episodeId String?
+  episode   Episode? @relation("EpisodeRatings", fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, seriesId, movieId, episodeId])
+}
+
+// ------------------------------------------------------------
+// VERLAUF, WATCHLIST, ABOS, BENACHRICHTIGUNGEN
+// ------------------------------------------------------------
+
+model WatchHistory {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType     WatchTargetType
+  episodeId      String?
+  episode        Episode?        @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  movieId        String?
+  movie          Movie?          @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  progressSec    Int             @default(0)
+  watchedAt      DateTime        @default(now())
+
+  @@index([userId, watchedAt])
+}
+
+model WatchlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seriesId  String?
+  series    Series?  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  movieId   String?
+  movie     Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  addedAt   DateTime @default(now())
+
+  @@unique([userId, seriesId, movieId])
+}
+
+model Subscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seriesId            String
+  series              Series   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  notifyOnNewEpisode  Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  @@unique([userId, seriesId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "NEW_EPISODE", "TICKET_REPLY", "FORUM_REPLY", ...
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+// ------------------------------------------------------------
+// SAMMLUNGEN / PLAYLISTS
+// ------------------------------------------------------------
+
+model Collection {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  items       CollectionItem[]
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  seriesId     String?
+  series       Series?    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  movieId      String?
+  movie        Movie?     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  episodeId    String?
+  episode      Episode?   @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  order        Int        @default(0)
+}
+
+// ------------------------------------------------------------
+// FORUM
+// ------------------------------------------------------------
+
+model ForumCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  order       Int      @default(0)
+
+  threads     ForumThread[]
+}
+
+model ForumThread {
+  id          String        @id @default(cuid())
+  categoryId  String
+  category    ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  title       String
+  isPinned    Boolean       @default(false)
+  isLocked    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+
+  posts       ForumPost[]
+
+  @@index([categoryId])
+}
+
+model ForumPost {
+  id        String      @id @default(cuid())
+  threadId  String
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime    @default(now())
+  editedAt  DateTime?
+
+  @@index([threadId])
+}
+
+// ------------------------------------------------------------
+// SUPPORT / TICKETS
+// ------------------------------------------------------------
+
+model Ticket {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation("TicketOwner", fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  status    TicketStatus   @default(OPEN)
+  priority  TicketPriority @default(MEDIUM)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  messages  TicketMessage[]
+
+  @@index([status])
+}
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  content   String
+  isStaff   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
