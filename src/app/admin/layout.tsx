@@ -15,16 +15,16 @@ import AdminShell from "@/components/admin/AdminShell";
 const NAV_ITEMS: {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string;
   minRole: Role;
 }[] = [
-  { href: "/admin", label: "Übersicht", icon: LayoutDashboard, minRole: "ADMIN" },
-  { href: "/admin/series", label: "Serien", icon: Clapperboard, minRole: "ADMIN" },
-  { href: "/admin/movies", label: "Filme", icon: Film, minRole: "ADMIN" },
-  { href: "/admin/forum", label: "Forum", icon: MessagesSquare, minRole: "ADMIN" },
-  { href: "/admin/tickets", label: "Support-Tickets", icon: LifeBuoy, minRole: "ADMIN" },
-  { href: "/admin/users", label: "Admins & Nutzer", icon: Users, minRole: "HEAD_ADMIN" },
-  { href: "/admin/settings", label: "Einstellungen", icon: Settings, minRole: "OWNER" },
+  { href: "/admin", label: "Übersicht", icon: "LayoutDashboard", minRole: "ADMIN" },
+  { href: "/admin/series", label: "Serien", icon: "Clapperboard", minRole: "ADMIN" },
+  { href: "/admin/movies", label: "Filme", icon: "Film", minRole: "ADMIN" },
+  { href: "/admin/forum", label: "Forum", icon: "MessagesSquare", minRole: "ADMIN" },
+  { href: "/admin/tickets", label: "Support-Tickets", icon: "LifeBuoy", minRole: "ADMIN" },
+  { href: "/admin/users", label: "Admins & Nutzer", icon: "Users", minRole: "HEAD_ADMIN" },
+  { href: "/admin/settings", label: "Einstellungen", icon: "Settings", minRole: "OWNER" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

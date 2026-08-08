@@ -3,13 +3,23 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Menu, X, ArrowLeft } from "lucide-react";
+import { Menu, X, ArrowLeft, LayoutDashboard, Clapperboard, Film, Users, MessagesSquare, LifeBuoy, Settings } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/permissions";
+
+const ICONS = {
+  LayoutDashboard,
+  Clapperboard,
+  Film,
+  Users,
+  MessagesSquare,
+  LifeBuoy,
+  Settings,
+} as const;
 
 interface NavItem {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: keyof typeof ICONS;
 }
 
 export default function AdminShell({
@@ -64,17 +74,20 @@ export default function AdminShell({
               </Link>
 
               <nav className="flex flex-1 flex-col gap-1">
-                {navItems.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-300 hover:bg-white/5 hover:text-white"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </Link>
-                ))}
+                {navItems.map(({ href, label, icon }) => {
+                  const Icon = ICONS[icon];
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-300 hover:bg-white/5 hover:text-white"
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </Link>
+                  );
+                })}
               </nav>
 
               <div className="mt-4 rounded-lg bg-white/5 px-3 py-3 text-xs">
