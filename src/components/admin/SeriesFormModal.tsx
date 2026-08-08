@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import ImageUpload from "@/components/shared/ImageUpload";
 
 export interface EpisodeInput {
   id?: string;
@@ -162,20 +163,23 @@ export default function SeriesFormModal({ initialValues, onClose, onSave }: Prop
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-400">Thumbnail-URL</label>
-              <input
-                required
+              <ImageUpload
+                bucket="thumbnails"
+                pathPrefix="series"
                 value={thumbnailUrl}
-                onChange={(e) => setThumbnailUrl(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                onChange={setThumbnailUrl}
+                label="Thumbnail"
+                aspect="portrait"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-400">Banner-URL</label>
-              <input
+              <ImageUpload
+                bucket="thumbnails"
+                pathPrefix="series"
                 value={bannerUrl}
-                onChange={(e) => setBannerUrl(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                onChange={setBannerUrl}
+                label="Banner (optional)"
+                aspect="wide"
               />
             </div>
             <div>

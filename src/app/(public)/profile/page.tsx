@@ -36,6 +36,7 @@ export default async function ProfilePage() {
     <div className="min-h-screen bg-neutral-950 px-4 py-8 text-white">
       <div className="mx-auto max-w-4xl">
         <ProfileHeader
+          userId={user.id}
           username={profile?.username ?? user.username}
           role={profile?.role ?? user.role}
           avatarUrl={profile?.avatar_url ?? null}

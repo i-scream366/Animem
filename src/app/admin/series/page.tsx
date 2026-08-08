@@ -5,7 +5,7 @@ export default async function AdminSeriesPage() {
   const supabase = createClient();
   const { data: series } = await supabase
     .from("series")
-    .select("*, seasons(*, episodes(*))")
+    .select("*, seasons(*, episodes(*)), genres:series_genres(genre:genres(name)), tags:series_tags(tag:tags(name))")
     .order("created_at", { ascending: false });
 
   return (

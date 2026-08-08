@@ -114,12 +114,18 @@ export default function SeriesTable({ initialSeries }: { initialSeries: SeriesRo
             editing
               ? {
                   title: editing.title,
+                  description: (editing as any).description ?? "",
                   thumbnailUrl: editing.thumbnail_url,
+                  bannerUrl: (editing as any).banner_url ?? "",
                   status: editing.status as SeriesFormValues["status"],
+                  genres: ((editing as any).genres ?? []).map((g: any) => g.genre?.name).filter(Boolean),
+                  tags: ((editing as any).tags ?? []).map((t: any) => t.tag?.name).filter(Boolean),
                   seasons: editing.seasons.map((s: any) => ({
+                    id: s.id,
                     number: s.number,
                     title: s.title,
                     episodes: (s.episodes ?? []).map((e: any) => ({
+                      id: e.id,
                       number: e.number,
                       title: e.title,
                       embedUrl: e.embed_url,

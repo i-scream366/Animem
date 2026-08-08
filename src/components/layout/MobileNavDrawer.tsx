@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   UserCircle,
   User,
+  Search,
 } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 
@@ -90,6 +91,7 @@ export default function MobileNavDrawer({
 
             <nav className="flex flex-col gap-1">
               <NavLink href="/" icon={Home} label="Startseite" onClick={close} />
+              <NavLink href="/search" icon={Search} label="Suche" onClick={close} />
               <NavLink href="/series" icon={Clapperboard} label="Serien" onClick={close} />
               <NavLink href="/movies" icon={Film} label="Filme" onClick={close} />
               <NavLink href="/categories" icon={Grid3x3} label="Kategorien" onClick={close} />

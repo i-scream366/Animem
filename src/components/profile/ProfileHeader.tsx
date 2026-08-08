@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserCircle, Pencil } from "lucide-react";
+import ImageUpload from "@/components/shared/ImageUpload";
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: "Owner",
@@ -12,11 +13,13 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function ProfileHeader({
+  userId,
   username,
   role,
   avatarUrl,
   bio,
 }: {
+  userId: string;
   username: string;
   role: string;
   avatarUrl: string | null;
@@ -76,12 +79,13 @@ export default function ProfileHeader({
       {editing && (
         <div className="mt-4 space-y-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-400">Profilbild-URL</label>
-            <input
+            <ImageUpload
+              bucket="avatars"
+              pathPrefix={userId}
               value={avatarInput}
-              onChange={(e) => setAvatarInput(e.target.value)}
-              placeholder="https://..."
-              className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              onChange={setAvatarInput}
+              label="Profilbild"
+              aspect="square"
             />
           </div>
           <div>

@@ -115,14 +115,15 @@ export default async function SeriesDetailPage({ params }: { params: { slug: str
                       className="group"
                     >
                       <div className="relative aspect-video overflow-hidden rounded-lg bg-neutral-800">
-                        {ep.thumbnail_url && (
-                          <Image
-                            src={ep.thumbnail_url}
-                            alt={ep.title}
-                            fill
-                            className="object-cover transition group-hover:scale-105"
-                          />
-                        )}
+                        <Image
+                          src={series.thumbnail_url}
+                          alt={ep.title}
+                          fill
+                          className="object-cover opacity-70 transition group-hover:scale-105 group-hover:opacity-100"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <span className="text-lg font-bold text-white">E{ep.number}</span>
+                        </div>
                       </div>
                       <p className="mt-1 truncate text-xs text-neutral-300">
                         {ep.number}. {ep.title}

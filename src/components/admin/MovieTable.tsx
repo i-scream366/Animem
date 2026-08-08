@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
+import ImageUpload from "@/components/shared/ImageUpload";
 
 interface MovieRow {
   id: string;
@@ -133,12 +134,13 @@ export default function MovieTable({ initialMovies }: { initialMovies: MovieRow[
                 rows={3}
                 className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
               />
-              <input
-                required
-                placeholder="Thumbnail-URL"
+              <ImageUpload
+                bucket="thumbnails"
+                pathPrefix="movies"
                 value={form.thumbnailUrl}
-                onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                onChange={(url) => setForm({ ...form, thumbnailUrl: url })}
+                label="Thumbnail"
+                aspect="portrait"
               />
               <input
                 required
