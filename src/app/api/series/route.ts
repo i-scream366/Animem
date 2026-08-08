@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, description, thumbnailUrl, bannerUrl, status, genres, seasons } = body;
+  const { title, description, thumbnailUrl, bannerUrl, status, genres, tags, seasons } = body;
 
   if (!title || !thumbnailUrl) {
     return NextResponse.json({ error: "Titel und Thumbnail sind Pflichtfelder" }, { status: 400 });
@@ -58,6 +58,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Tags: gleiches Prinzip wie Genres, eigene Übersichtsseite pro Tag
+  for (const name of (tags as string[]) ?? []) {
+    const { data: tag } = await supabase
+      .from("tags")
+      .upsert({ name, slug: slugify(name) }, { onConflict: "name" })
+      .select()
+      .single();
+    if (tag) {
+      await supabase.from("series_tags").insert({ series_id: series.id, tag_id: tag.id });
+    }
+  }
+
   // Staffeln + Episoden verschachtelt anlegen
   for (const season of seasons ?? []) {
     const { data: createdSeason } = await supabase
@@ -81,7 +93,7 @@ export async function POST(req: NextRequest) {
 
   const { data: full } = await supabase
     .from("series")
-    .select("*, seasons(*, episodes(*)), genres:series_genres(genre:genres(*))")
+    .select("*, seasons(*, episodes(*)), genres:series_genres(genre:genres(*)), tags:series_tags(tag:tags(*))")
     .eq("id", series.id)
     .single();
 

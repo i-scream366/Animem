@@ -25,6 +25,7 @@ export interface SeriesFormValues {
   bannerUrl?: string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   genres: string[]; // Namen, kommasepariert im UI
+  tags: string[]; // z.B. "Let's Play" — eigene Übersichtsseite pro Tag
   seasons: SeasonInput[];
 }
 
@@ -48,6 +49,9 @@ export default function SeriesFormModal({ initialValues, onClose, onSave }: Prop
   );
   const [genresInput, setGenresInput] = useState(
     initialValues?.genres?.join(", ") ?? ""
+  );
+  const [tagsInput, setTagsInput] = useState(
+    initialValues?.tags?.join(", ") ?? ""
   );
   const [seasons, setSeasons] = useState<SeasonInput[]>(
     (initialValues?.seasons as SeasonInput[]) ?? [emptySeason(1)]
@@ -116,6 +120,7 @@ export default function SeriesFormModal({ initialValues, onClose, onSave }: Prop
         bannerUrl,
         status,
         genres: genresInput.split(",").map((g) => g.trim()).filter(Boolean),
+        tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
         seasons,
       });
     } finally {
@@ -193,6 +198,17 @@ export default function SeriesFormModal({ initialValues, onClose, onSave }: Prop
                 value={genresInput}
                 onChange={(e) => setGenresInput(e.target.value)}
                 placeholder="Action, Fantasy, Isekai"
+                className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-neutral-400">
+                Tags (kommagetrennt, z.B. eigene Sammlungen)
+              </label>
+              <input
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="Let's Play, Community-Favorit"
                 className="w-full rounded-lg border border-white/10 bg-neutral-800 px-3 py-2 text-sm outline-none focus:border-indigo-500"
               />
             </div>

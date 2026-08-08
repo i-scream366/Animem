@@ -14,7 +14,7 @@ export default async function SeriesDetailPage({ params }: { params: { slug: str
   const { data: series } = await supabase
     .from("series")
     .select(
-      "id, title, description, thumbnail_url, banner_url, avg_rating, ratings_count, seasons(id, number, title, episodes(id, number, title, thumbnail_url, status))"
+      "id, title, description, thumbnail_url, banner_url, avg_rating, ratings_count, seasons(id, number, title, episodes(id, number, title, thumbnail_url, status)), tags:series_tags(tag:tags(name, slug))"
     )
     .eq("slug", params.slug)
     .single();
@@ -67,6 +67,20 @@ export default async function SeriesDetailPage({ params }: { params: { slug: str
               {Number(series.avg_rating).toFixed(1)} · {series.ratings_count} Bewertungen
             </div>
             <p className="mt-4 max-w-2xl text-sm text-neutral-300">{series.description}</p>
+
+            {!!(series as any).tags?.length && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(series as any).tags.map((t: any) => (
+                  <Link
+                    key={t.tag.slug}
+                    href={`/tags/${t.tag.slug}`}
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-300 hover:bg-white/10"
+                  >
+                    #{t.tag.name}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {user ? (

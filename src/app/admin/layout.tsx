@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   LayoutDashboard,
@@ -10,7 +9,8 @@ import {
   Settings,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { can, ROLE_LABELS, type Role } from "@/lib/permissions";
+import { can, type Role } from "@/lib/permissions";
+import AdminShell from "@/components/admin/AdminShell";
 
 const NAV_ITEMS: {
   href: string;
@@ -30,7 +30,6 @@ const NAV_ITEMS: {
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
 
-  // Nur ADMIN, HEAD_ADMIN, OWNER dürfen das Dashboard überhaupt betreten
   if (!user || !can.manageContent(user.role)) {
     redirect("/");
   }
@@ -42,33 +41,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   });
 
   return (
-    <div className="flex min-h-screen bg-neutral-950 text-neutral-100">
-      <aside className="flex w-64 flex-col border-r border-white/10 bg-neutral-900/60 px-4 py-6">
-        <div className="mb-8 px-2">
-          <p className="text-lg font-bold tracking-tight">Animem</p>
-          <p className="text-xs text-neutral-400">Admin-Bereich</p>
-        </div>
-
-        <nav className="flex flex-1 flex-col gap-1">
-          {visibleItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-300 transition hover:bg-white/5 hover:text-white"
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="mt-6 rounded-lg bg-white/5 px-3 py-3 text-xs">
-          <p className="font-medium text-neutral-200">{user.username}</p>
-          <p className="text-neutral-400">{ROLE_LABELS[user.role]}</p>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto p-8">{children}</main>
-    </div>
+    <AdminShell navItems={visibleItems} username={user.username} role={user.role}>
+      {children}
+    </AdminShell>
   );
 }
