@@ -17,7 +17,7 @@ export default async function AdminUsersPage() {
   return (
     <div>
       <h1 className="mb-6 text-2xl font-bold">Admins & Nutzer</h1>
-      <UserRoleTable initialUsers={users ?? []} canAssignRoles={user.role === "OWNER"} />
+      <UserRoleTable initialUsers={users ?? []} actorId={user.id} actorRole={user.role} />
     </div>
   );
 }

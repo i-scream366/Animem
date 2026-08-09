@@ -25,6 +25,25 @@ export const can = {
   manageSettings: (role: Role) => hasMinRole(role, "OWNER"),
 };
 
+// Welche Rollen darf jemand grundsätzlich VERGEBEN?
+// - Owner: alle Rollen (inkl. andere zu Owner machen)
+// - Head Admin: nur USER <-> ADMIN (kein Zugriff auf Head Admin/Owner)
+// - Admin & User: gar keine
+export function assignableRoles(actorRole: Role): Role[] {
+  if (actorRole === "OWNER") return ["USER", "ADMIN", "HEAD_ADMIN", "OWNER"];
+  if (actorRole === "HEAD_ADMIN") return ["USER", "ADMIN"];
+  return [];
+}
+
+// Darf der Handelnde die Rolle EINES BESTIMMTEN NUTZERS überhaupt anfassen?
+// - Owner: jeden außer sich selbst (niemand kann sich selbst stufen, auch der Owner nicht versehentlich)
+// - Head Admin: nur Nutzer, die aktuell USER oder ADMIN sind (Head Admins/Owner bleiben unantastbar)
+export function canManageTargetRole(actorRole: Role, targetRole: Role): boolean {
+  if (actorRole === "OWNER") return true;
+  if (actorRole === "HEAD_ADMIN") return targetRole === "USER" || targetRole === "ADMIN";
+  return false;
+}
+
 export const ROLE_LABELS: Record<Role, string> = {
   OWNER: "Owner",
   HEAD_ADMIN: "Head Admin",

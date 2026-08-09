@@ -35,13 +35,15 @@ export default function FavoritesPicker({
   const router = useRouter();
   const [editingRank, setEditingRank] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const bySlot = (rank: number) => favorites.find((f) => f.rank === rank);
 
   async function setFavorite(rank: number, value: string) {
     setSaving(true);
+    setError(null);
     const [type, id] = value.split(":");
-    await fetch("/api/profile/favorites", {
+    const res = await fetch("/api/profile/favorites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -51,6 +53,15 @@ export default function FavoritesPicker({
       }),
     });
     setSaving(false);
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setError(
+        body?.error?.includes("relation")
+          ? "Die Datenbank-Tabelle für das Sieger-Treppchen fehlt noch — bitte supabase/update-profile-favorites.sql im SQL Editor ausführen."
+          : body?.error || "Speichern fehlgeschlagen."
+      );
+      return;
+    }
     setEditingRank(null);
     router.refresh();
   }
@@ -150,6 +161,7 @@ export default function FavoritesPicker({
                         Auswahl entfernen
                       </button>
                     )}
+                    {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
                   </div>
                 </div>
               )}
